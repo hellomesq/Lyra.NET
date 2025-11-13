@@ -1,0 +1,6 @@
+@Lyra_HostAddress = http://localhost:5209
+
+GET {{Lyra_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
