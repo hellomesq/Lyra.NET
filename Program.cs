@@ -8,7 +8,6 @@ using OpenTelemetry.Trace;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<UserService>();
-
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -51,18 +50,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Habilita Swagger em qualquer ambiente
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Lyra API V1");
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Lyra API V1");
+});
 
+// Adiciona rota raiz para teste
+app.MapGet("/", () => "API Lyra rodando com sucesso!");
+
+// Health check
 app.MapHealthChecks("/health");
 
-app.UseHttpsRedirection();
+// Condicional HTTPS apenas em desenvolvimento (opcional)
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.MapControllers();
 
