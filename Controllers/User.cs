@@ -21,9 +21,6 @@ public class UserController : ControllerBase
         _logger = logger;
     }
 
-    // ----------------------
-    //  CRIAR USUÁRIO (Normal)
-    // ----------------------
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] UserDto user)
     {
@@ -31,9 +28,6 @@ public class UserController : ControllerBase
         return Created("", new { message = "Usuário cadastrado com sucesso via PROCEDURE!" });
     }
 
-    // ----------------------
-    //  LISTAR TODOS (Opcional, não protegido)
-    // ----------------------
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -41,9 +35,6 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    // ----------------------
-    //  GET USER BY ID (Protegido)
-    // ----------------------
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
@@ -65,9 +56,6 @@ public class UserController : ControllerBase
         return Ok(new { user });
     }
 
-    // ----------------------
-    //  UPDATE USER (Protegido)
-    // ----------------------
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDto dto)
     {
@@ -93,9 +81,6 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    // ----------------------
-    //  DELETE USER (Protegido)
-    // ----------------------
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
@@ -117,9 +102,6 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    // ----------------------
-    //  CHECK USER (Protegido)
-    // ----------------------
     [HttpGet("check")]
     public async Task<IActionResult> CheckUser()
     {

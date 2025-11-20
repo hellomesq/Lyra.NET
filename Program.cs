@@ -9,16 +9,19 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 🔹 Configuração Firebase
 if (FirebaseApp.DefaultInstance == null)
 {
     var credential = GoogleCredential.FromFile("/etc/secrets/firebase-key.json");
     FirebaseApp.Create(new AppOptions() { Credential = credential });
 }
 
+// 🔹 Serviços da aplicação
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<HistoricoService>();
 builder.Services.AddControllers();
 
+// 🔹 Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -33,6 +36,7 @@ builder.Services.AddSwaggerGen(options =>
     );
 });
 
+// 🔹 Versionamento de API
 builder.Services.AddApiVersioning(config =>
 {
     config.DefaultApiVersion = new ApiVersion(1, 0);
@@ -40,11 +44,14 @@ builder.Services.AddApiVersioning(config =>
     config.ReportApiVersions = true;
 });
 
+// 🔹 Health checks
 builder.Services.AddHealthChecks();
 
+// 🔹 Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+// 🔹 OpenTelemetry (opcional)
 builder
     .Services.AddOpenTelemetry()
     .WithTracing(t =>
@@ -53,29 +60,70 @@ builder
         t.AddHttpClientInstrumentation();
     });
 
+// 🔹 Banco de dados Oracle
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("OracleConnection"))
 );
 
+// 🔹 CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowDev",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin() // permite qualquer origem para dev
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    );
+
+    options.AddPolicy(
+        "AllowProd",
+        policy =>
+        {
+            policy
+                .WithOrigins("https://seu-dominio.com") // domínio de produção
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    );
+});
+
 var app = builder.Build();
 
+// 🔹 CORS
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowDev");
+}
+else
+{
+    app.UseCors("AllowProd");
+}
+
+// 🔹 Middleware Firebase
 app.UseMiddleware<FirebaseAuthMiddleware>();
 
+// 🔹 Swagger
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Lyra API V1");
 });
 
+// 🔹 Endpoints
 app.MapGet("/", () => "API Lyra rodando com sucesso!");
-
 app.MapHealthChecks("/health");
 
+// 🔹 HTTPS em dev
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
+// 🔹 Controllers
 app.MapControllers();
 
 app.Run();
