@@ -21,13 +21,15 @@ public class UserController : ControllerBase
         _logger = logger;
     }
 
+    // Criar usuário
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] UserDto user)
     {
         await _service.InserirUsuario(user.Name, user.Email, user.Password, user.Experience_Level);
-        return Created("", new { message = "Usuário cadastrado com sucesso via PROCEDURE!" });
+        return Created("", new { message = "Usuário cadastrado com sucesso!" });
     }
 
+    // Listar todos os usuários
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -35,41 +37,24 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
+    // Pegar usuário por ID
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
-        // Pega email vindo do token
-        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
-        if (emailFromFirebase == null)
-            return Unauthorized(new { message = "Token inválido ou ausente." });
-
-        // Busca o usuário do banco baseado no email do Firebase
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
-
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.User_Id == id);
         if (user == null)
-            return Forbid("Usuário autenticado no Firebase, mas não existe no banco.");
+            return NotFound(new { message = "Usuário não encontrado." });
 
-        // Bloqueia se tentar acessar outro ID
-        if (user.User_Id != id)
-            return Forbid("Você não tem permissão para acessar informações de outro usuário.");
-
-        return Ok(new { user });
+        return Ok(user);
     }
 
+    // Atualizar usuário
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDto dto)
     {
-        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
-        if (emailFromFirebase == null)
-            return Unauthorized();
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
-
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.User_Id == id);
         if (user == null)
-            return Forbid();
-
-        if (user.User_Id != id)
-            return Forbid();
+            return NotFound(new { message = "Usuário não encontrado." });
 
         user.Name = dto.Name;
         user.Email = dto.Email;
@@ -77,42 +62,30 @@ public class UserController : ControllerBase
         user.Experience_Level = dto.Experience_Level;
 
         await _context.SaveChangesAsync();
-
         return NoContent();
     }
 
+    // Deletar usuário
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
-        if (emailFromFirebase == null)
-            return Unauthorized();
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
-
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.User_Id == id);
         if (user == null)
-            return Forbid();
-
-        if (user.User_Id != id)
-            return Forbid();
+            return NotFound(new { message = "Usuário não encontrado." });
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
-
         return NoContent();
     }
 
-    [HttpGet("me")]
-    public async Task<IActionResult> GetCurrentUser()
+    // Pegar usuário "atual" (aqui pode ser pelo ID que você passar)
+    [HttpGet("me/{id}")]
+    public async Task<IActionResult> GetCurrentUser(int id)
     {
-        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
-        if (emailFromFirebase == null)
-            return Unauthorized(new { message = "Token inválido ou ausente." });
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.User_Id == id);
         if (user == null)
-            return NotFound(new { message = "Usuário autenticado, mas não existe no banco." });
+            return NotFound(new { message = "Usuário não encontrado." });
 
-        return Ok(user); // Retorna o User_Id junto com nome, email, etc.
+        return Ok(user);
     }
 }

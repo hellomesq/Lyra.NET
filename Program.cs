@@ -103,9 +103,6 @@ else
     app.UseCors("AllowProd");
 }
 
-// 🔹 Middleware Firebase
-app.UseMiddleware<FirebaseAuthMiddleware>();
-
 // 🔹 Swagger
 app.UseSwagger();
 app.UseSwaggerUI(options =>
