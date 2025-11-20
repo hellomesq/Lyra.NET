@@ -9,9 +9,11 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-FirebaseApp.Create(
-    new AppOptions() { Credential = GoogleCredential.FromFile("firebase-key.json") }
-);
+if (FirebaseApp.DefaultInstance == null)
+{
+    var credential = GoogleCredential.FromFile("/etc/secrets/firebase-key.json");
+    FirebaseApp.Create(new AppOptions() { Credential = credential });
+}
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<HistoricoService>();
@@ -57,23 +59,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// Ativa o middleware de autenticação Firebase
 app.UseMiddleware<FirebaseAuthMiddleware>();
 
-// Habilita Swagger em qualquer ambiente
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Lyra API V1");
 });
 
-// Adiciona rota raiz para teste
 app.MapGet("/", () => "API Lyra rodando com sucesso!");
 
-// Health check
 app.MapHealthChecks("/health");
 
-// Condicional HTTPS apenas em desenvolvimento (opcional)
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
