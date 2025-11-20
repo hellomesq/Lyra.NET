@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Lyra.Data;
 using Lyra.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +9,12 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
+FirebaseApp.Create(
+    new AppOptions() { Credential = GoogleCredential.FromFile("firebase-key.json") }
+);
+
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<HistoricoService>();
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -49,6 +56,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 var app = builder.Build();
+
+// Ativa o middleware de autenticação Firebase
+app.UseMiddleware<FirebaseAuthMiddleware>();
 
 // Habilita Swagger em qualquer ambiente
 app.UseSwagger();

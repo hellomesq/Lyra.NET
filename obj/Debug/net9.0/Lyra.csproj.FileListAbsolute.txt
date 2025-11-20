@@ -190,3 +190,13 @@ C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\OpenTelemetry.
 C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\OpenTelemetry.Extensions.Hosting.dll
 C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\OpenTelemetry.Instrumentation.AspNetCore.dll
 C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\OpenTelemetry.Instrumentation.Http.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\firebase-key.json
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\FirebaseAdmin.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\Google.Api.Gax.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\Google.Api.Gax.Rest.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\Google.Apis.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\Google.Apis.Auth.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\Google.Apis.Core.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\Newtonsoft.Json.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\System.Management.dll
+C:\Users\Heloisa\Downloads\Faculdade\GS\Lyra.NET\bin\Debug\net9.0\runtimes\win\lib\net7.0\System.Management.dll

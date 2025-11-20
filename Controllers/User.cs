@@ -21,81 +21,57 @@ public class UserController : ControllerBase
         _logger = logger;
     }
 
+    // ----------------------
+    //  CRIAR USUÁRIO (Normal)
+    // ----------------------
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser([FromBody] UserDto user)
     {
         await _service.InserirUsuario(user.Name, user.Email, user.Password, user.Experience_Level);
         return Created("", new { message = "Usuário cadastrado com sucesso via PROCEDURE!" });
     }
 
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUsers(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        ApiVersion? apiVersion = null
-    )
-    {
-        var total = await _context.Users.CountAsync();
-        var users = await _context
-            .Users.OrderBy(u => u.User_Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        string version = apiVersion?.ToString() ?? "1.0";
-        string url = $"{Request.Scheme}://{Request.Host}/api/v{version}/User";
-
-        var response = new
-        {
-            page,
-            pageSize,
-            total,
-            data = users,
-            links = new
-            {
-                self = $"{url}?page={page}&pageSize={pageSize}",
-                next = page * pageSize < total
-                    ? $"{url}?page={page + 1}&pageSize={pageSize}"
-                    : null,
-                prev = page > 1 ? $"{url}?page={page - 1}&pageSize={pageSize}" : null,
-            },
-        };
-
-        return Ok(response);
-    }
-
+    // ----------------------
+    //  GET USER BY ID (Protegido)
+    // ----------------------
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserById(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        // Pega email vindo do token
+        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
+        if (emailFromFirebase == null)
+            return Unauthorized(new { message = "Token inválido ou ausente." });
+
+        // Busca o usuário do banco baseado no email do Firebase
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
 
         if (user == null)
-            return NotFound(new { message = "Usuário não encontrado." });
+            return Forbid("Usuário autenticado no Firebase, mas não existe no banco.");
 
-        var links = new
-        {
-            self = Url.Action(nameof(GetUserById), new { id }),
-            update = Url.Action(nameof(UpdateUser), new { id }),
-            delete = Url.Action(nameof(DeleteUser), new { id }),
-        };
+        // Bloqueia se tentar acessar outro ID
+        if (user.User_Id != id)
+            return Forbid("Você não tem permissão para acessar informações de outro usuário.");
 
-        return Ok(new { user, links });
+        return Ok(new { user });
     }
 
+    // ----------------------
+    //  UPDATE USER (Protegido)
+    // ----------------------
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDto dto)
     {
-        var user = await _context.Users.FindAsync(id);
+        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
+        if (emailFromFirebase == null)
+            return Unauthorized();
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
 
         if (user == null)
-            return NotFound(new { message = "Usuário não encontrado." });
+            return Forbid();
+
+        if (user.User_Id != id)
+            return Forbid();
 
         user.Name = dto.Name;
         user.Email = dto.Email;
@@ -107,15 +83,23 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    // ----------------------
+    //  DELETE USER (Protegido)
+    // ----------------------
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
+        if (emailFromFirebase == null)
+            return Unauthorized();
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
 
         if (user == null)
-            return NotFound(new { message = "Usuário não encontrado." });
+            return Forbid();
+
+        if (user.User_Id != id)
+            return Forbid();
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
