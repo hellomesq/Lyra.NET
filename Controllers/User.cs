@@ -102,27 +102,17 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("check")]
-    public async Task<IActionResult> CheckUser()
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
     {
-        // Email vindo do token do Firebase (middleware)
         var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
-
         if (emailFromFirebase == null)
             return Unauthorized(new { message = "Token inválido ou ausente." });
 
-        // Verifica se existe no BD
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
-
         if (user == null)
-            return NotFound(
-                new
-                {
-                    message = "Usuário existe no Firebase, mas não existe no banco.",
-                    email = emailFromFirebase,
-                }
-            );
+            return NotFound(new { message = "Usuário autenticado, mas não existe no banco." });
 
-        return Ok(new { message = "Usuário validado com sucesso.", user });
+        return Ok(user); // Retorna o User_Id junto com nome, email, etc.
     }
 }
