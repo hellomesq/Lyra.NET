@@ -32,6 +32,16 @@ public class UserController : ControllerBase
     }
 
     // ----------------------
+    //  LISTAR TODOS (Opcional, não protegido)
+    // ----------------------
+    [HttpGet]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _context.Users.ToListAsync();
+        return Ok(users);
+    }
+
+    // ----------------------
     //  GET USER BY ID (Protegido)
     // ----------------------
     [HttpGet("{id}")]
@@ -105,5 +115,32 @@ public class UserController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // ----------------------
+    //  CHECK USER (Protegido)
+    // ----------------------
+    [HttpGet("check")]
+    public async Task<IActionResult> CheckUser()
+    {
+        // Email vindo do token do Firebase (middleware)
+        var emailFromFirebase = HttpContext.Items["FirebaseEmail"]?.ToString();
+
+        if (emailFromFirebase == null)
+            return Unauthorized(new { message = "Token inválido ou ausente." });
+
+        // Verifica se existe no BD
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == emailFromFirebase);
+
+        if (user == null)
+            return NotFound(
+                new
+                {
+                    message = "Usuário existe no Firebase, mas não existe no banco.",
+                    email = emailFromFirebase,
+                }
+            );
+
+        return Ok(new { message = "Usuário validado com sucesso.", user });
     }
 }
