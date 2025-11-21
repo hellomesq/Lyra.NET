@@ -93,15 +93,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 🔹 CORS
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("AllowDev");
-}
-else
-{
-    app.UseCors("AllowProd");
-}
+// CORS
+app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
 // 🔹 Swagger
 app.UseSwagger();
