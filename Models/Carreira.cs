@@ -4,25 +4,25 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Lyra.Models
 {
-    [Table("career_path")] // tabela de trilhas
+    [Table("CAREER_PATH")] // maiúsculas igual USER_
     public class TrilhaConcluida
     {
         [Key]
-        [Column("path_id")]
+        [Column("PATH_ID")]
         public int Id { get; set; }
 
         [Required]
-        [Column("title")]
+        [Column("TITLE")]
         public string Trilha { get; set; } = null!;
 
-        [Column("description")]
+        [Column("DESCRIPTION")]
         public string? Descricao { get; set; }
 
         [Required]
-        [Column("user_id")]
+        [Column("USER_ID")]
         public int UserId { get; set; }
 
-        [Column("created_at")]
+        [Column("CREATED_AT")]
         public DateTime DataConclusao { get; set; } = DateTime.UtcNow;
     }
 }

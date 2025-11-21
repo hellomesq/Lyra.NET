@@ -18,7 +18,7 @@ namespace Lyra.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ConcluirTrilha([FromBody] ConcluirTrilhaDto dto)
+        public async Task<IActionResult> ConcluirTrilha([FromBody] CarreiraDto dto)
         {
             if (dto.UserId <= 0 || string.IsNullOrWhiteSpace(dto.Trilha))
                 return BadRequest(new { message = "Dados inválidos." });
@@ -34,7 +34,14 @@ namespace Lyra.Controllers
             _context.Add(registro);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Trilha salva com sucesso!", trilha = registro.Trilha });
+            return Ok(
+                new
+                {
+                    message = "Trilha salva com sucesso!",
+                    trilha = registro.Trilha,
+                    descricao = registro.Descricao,
+                }
+            );
         }
     }
 }

@@ -9,16 +9,8 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Configuração Firebase
-if (FirebaseApp.DefaultInstance == null)
-{
-    var credential = GoogleCredential.FromFile("/etc/secrets/firebase-key.json");
-    FirebaseApp.Create(new AppOptions() { Credential = credential });
-}
-
 // 🔹 Serviços da aplicação
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<HistoricoService>();
 builder.Services.AddControllers();
 
 // 🔹 Swagger

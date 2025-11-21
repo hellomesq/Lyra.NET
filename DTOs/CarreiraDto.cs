@@ -1,6 +1,6 @@
 namespace Lyra.DTOs
 {
-    public class ConcluirTrilhaDto
+    public class CarreiraDto
     {
         public int UserId { get; set; }
         public string Trilha { get; set; } = null!;
