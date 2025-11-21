@@ -2,6 +2,7 @@ using Lyra.Data;
 using Lyra.DTOs;
 using Lyra.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lyra.Controllers
 {
@@ -15,6 +16,25 @@ namespace Lyra.Controllers
         public CarreiraController(AppDbContext context)
         {
             _context = context;
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetTrilhasDoUsuario(int userId)
+        {
+            var trilhas = await _context
+                .Career_Paths.Where(t => t.UserId == userId)
+                .Select(t => new
+                {
+                    t.Trilha,
+                    t.Descricao,
+                    t.DataConclusao,
+                })
+                .ToListAsync();
+
+            if (!trilhas.Any())
+                return NotFound(new { message = "Nenhuma trilha encontrada para esse usuário." });
+
+            return Ok(trilhas);
         }
 
         [HttpPost]
