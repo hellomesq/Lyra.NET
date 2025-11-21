@@ -25,7 +25,6 @@ namespace Lyra.Services
             return paths
                 .Select(p => new HistoricoDto
                 {
-                    PathId = p.Path_Id,
                     Title = p.Title ?? string.Empty,
                     CreatedAt = p.Created_At ?? DateTime.MinValue,
                     User_Id = p.User_Id,
