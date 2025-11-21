@@ -33,6 +33,26 @@ namespace Lyra.Services
                     p_experience_level = experience,
                 }
             );
+            // 2️⃣ Recuperar ID do usuário recém-criado
+            var userId = await conn.QuerySingleAsync<int>(
+                @"SELECT user_id FROM ""USER_"" WHERE email = :email",
+                new { email }
+            );
+
+            // 3️⃣ Criar trilha inicial
+            var sqlTrilha =
+                @"BEGIN
+                          pkg_career.inserir_trilha(:p_title, :p_description, :p_user_id);
+                      END;";
+            await conn.ExecuteAsync(
+                sqlTrilha,
+                new
+                {
+                    p_title = "Trilha Inicial",
+                    p_description = "Trilha gerada automaticamente para o usuário.",
+                    p_user_id = userId,
+                }
+            );
         }
     }
 }
