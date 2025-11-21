@@ -16,6 +16,16 @@ namespace Lyra.Controllers
             _service = service;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> PostHistory([FromBody] HistoricoDto dto)
+        {
+            if (dto == null)
+                return BadRequest();
+
+            await _service.InserirHistorico(dto);
+            return Ok(new { message = "Histórico salvo com sucesso" });
+        }
+
         [HttpGet("{userId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
