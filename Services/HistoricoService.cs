@@ -14,11 +14,11 @@ namespace Lyra.Services
             _context = context;
         }
 
+        // Retorna o histórico de trilhas de um usuário
         public async Task<List<HistoricoDto>> GetUserCareerHistory(int userId)
         {
             var paths = await _context
-                .Users.Where(u => u.User_Id == userId)
-                .SelectMany(u => _context.Career_Paths.Where(p => p.User_Id == u.User_Id))
+                .Career_Paths.Where(p => p.User_Id == userId)
                 .OrderByDescending(p => p.Created_At)
                 .ToListAsync();
 
@@ -26,10 +26,25 @@ namespace Lyra.Services
                 .Select(p => new HistoricoDto
                 {
                     PathId = p.Path_Id,
-                    Title = p.Title ?? string.Empty, // garante que não seja null
+                    Title = p.Title ?? string.Empty,
                     CreatedAt = p.Created_At ?? DateTime.MinValue,
+                    User_Id = p.User_Id,
                 })
                 .ToList();
+        }
+
+        // Insere um histórico de trilha para um usuário
+        public async Task InserirHistorico(HistoricoDto dto)
+        {
+            var careerPath = new CareerPath
+            {
+                Title = dto.Title,
+                Created_At = dto.CreatedAt,
+                User_Id = dto.User_Id,
+            };
+
+            _context.Career_Paths.Add(careerPath);
+            await _context.SaveChangesAsync();
         }
     }
 }

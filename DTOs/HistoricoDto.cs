@@ -6,5 +6,7 @@ namespace Lyra.DTOs
         public required string Title { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public int User_Id { get; set; }
     }
 }
