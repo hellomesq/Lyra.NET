@@ -14,14 +14,19 @@ namespace Lyra.Services
                 ?? throw new Exception("Connection string 'OracleConnection' não encontrada.");
         }
 
-        public async Task InserirUsuario(string nome, string email, string senha, string experience)
+        public async Task<int> InserirUsuario(
+            string nome,
+            string email,
+            string senha,
+            string experience
+        )
         {
             using var conn = new OracleConnection(_connectionString);
 
             var sql =
                 @"BEGIN 
-                            pkg_user.inserir_usuario(:p_name, :p_email, :p_password, :p_experience_level);
-                        END;";
+            pkg_user.inserir_usuario(:p_name, :p_email, :p_password, :p_experience_level);
+        END;";
 
             await conn.ExecuteAsync(
                 sql,
@@ -33,17 +38,19 @@ namespace Lyra.Services
                     p_experience_level = experience,
                 }
             );
-            // 2️⃣ Recuperar ID do usuário recém-criado
+
+            // 🔹 Recupera ID do usuário recém-criado
             var userId = await conn.QuerySingleAsync<int>(
                 @"SELECT user_id FROM ""USER_"" WHERE email = :email",
                 new { email }
             );
 
-            // 3️⃣ Criar trilha inicial
+            // 🔹 Cria trilha inicial
             var sqlTrilha =
                 @"BEGIN
-                          pkg_career.inserir_trilha(:p_title, :p_description, :p_user_id);
-                      END;";
+            pkg_career.inserir_trilha(:p_title, :p_description, :p_user_id);
+        END;";
+
             await conn.ExecuteAsync(
                 sqlTrilha,
                 new
@@ -53,6 +60,8 @@ namespace Lyra.Services
                     p_user_id = userId,
                 }
             );
+
+            return userId; // 🔹 retorna ID do usuário criado
         }
     }
 }

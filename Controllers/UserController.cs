@@ -25,8 +25,14 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] UserDto user)
     {
-        await _service.InserirUsuario(user.Name, user.Email, user.Password, user.Experience_Level);
-        return Created("", new { message = "Usuário cadastrado com sucesso!" });
+        var userId = await _service.InserirUsuario(
+            user.Name,
+            user.Email,
+            user.Password,
+            user.Experience_Level
+        );
+
+        return Created("", new { id = userId, message = "Usuário cadastrado com sucesso!" });
     }
 
     // Listar todos os usuários
@@ -73,16 +79,27 @@ public class UserController : ControllerBase
         if (user == null)
             return NotFound(new { message = "Usuário não encontrado." });
 
+        // Deletar trilhas concluídas
+        var trilhas = _context.Career_Paths.Where(t => t.UserId == id);
+        _context.Career_Paths.RemoveRange(trilhas);
+
+        await _context.SaveChangesAsync();
+
+        // Deletar usuário
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
+
         return NoContent();
     }
 
-    // Pegar usuário "atual" (aqui pode ser pelo ID que você passar)
-    [HttpGet("me/{id}")]
-    public async Task<IActionResult> GetCurrentUser(int id)
+    // Pegar usuário por email
+    [HttpGet("by-email")]
+    public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.User_Id == id);
+        if (string.IsNullOrEmpty(email))
+            return BadRequest(new { message = "Email é obrigatório." });
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
             return NotFound(new { message = "Usuário não encontrado." });
 
