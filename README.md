@@ -5,6 +5,7 @@ A API é RESTful, construída em ASP.NET Core, utilizando Entity Framework Core 
 
 ## Integrantes
 
+- Gabriel Dias Menezes RM 555019
 - Hellen Marinho Cordeiro RM 558841
 - Heloisa Alves de Mesquita RM 559145
 
