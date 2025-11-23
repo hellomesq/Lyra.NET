@@ -53,6 +53,27 @@ namespace Lyra.Controllers
             );
         }
 
+        [HttpGet("by-email")]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { message = "Email é obrigatório." });
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return NotFound(new { message = "Usuário não encontrado." });
+
+            return Ok(
+                new
+                {
+                    user_Id = user.User_Id,
+                    name = user.Name,
+                    email = user.Email,
+                    experience_Level = user.Experience_Level,
+                }
+            );
+        }
+
         /// <summary>
         /// Lista todos os usuários com paginação.
         /// </summary>
