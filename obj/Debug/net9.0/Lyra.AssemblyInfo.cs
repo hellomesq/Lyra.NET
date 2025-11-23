@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lyra")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a28a7f43a4c393549ef0b41f13e4775d75a10c3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08b6a7d90dd84c97ae09ff7c7d321a986e304034")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lyra")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lyra")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
