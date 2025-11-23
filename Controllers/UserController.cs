@@ -27,9 +27,15 @@ namespace Lyra.Controllers
             _logger = logger;
         }
 
+        // -------------------------------------------------------------
+        //  POST - CREATE USER
+        // -------------------------------------------------------------
+
         /// <summary>
-        /// Cria um novo usuário.
+        /// Cria um novo usuário no sistema.
         /// </summary>
+        /// <param name="user">Dados do usuário a ser criado.</param>
+        /// <returns>Retorna o usuário criado com links HATEOAS.</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -44,15 +50,39 @@ namespace Lyra.Controllers
                 user.Password,
                 user.Experience_Level
             );
+
             _logger.LogInformation("Usuário criado: {Email} (ID: {UserId})", user.Email, userId);
 
             return CreatedAtAction(
                 nameof(GetUserById),
                 new { id = userId },
-                new { id = userId, message = "Usuário cadastrado com sucesso!" }
+                new
+                {
+                    message = "Usuário cadastrado com sucesso!",
+                    user = new
+                    {
+                        id = userId,
+                        user.Name,
+                        user.Email,
+                        user.Experience_Level,
+                        _links = new
+                        {
+                            self = Url.Action(nameof(GetUserById), new { id = userId }),
+                            update = Url.Action(nameof(UpdateUser), new { id = userId }),
+                            delete = Url.Action(nameof(DeleteUser), new { id = userId }),
+                        },
+                    },
+                }
             );
         }
 
+        // -------------------------------------------------------------
+        //  GET USER BY EMAIL
+        // -------------------------------------------------------------
+
+        /// <summary>
+        /// Retorna um usuário pelo email.
+        /// </summary>
         [HttpGet("by-email")]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
@@ -66,17 +96,29 @@ namespace Lyra.Controllers
             return Ok(
                 new
                 {
-                    user_Id = user.User_Id,
-                    name = user.Name,
-                    email = user.Email,
-                    experience_Level = user.Experience_Level,
+                    user.User_Id,
+                    user.Name,
+                    user.Email,
+                    user.Experience_Level,
+                    _links = new
+                    {
+                        self = Url.Action(nameof(GetUserById), new { id = user.User_Id }),
+                        update = Url.Action(nameof(UpdateUser), new { id = user.User_Id }),
+                        delete = Url.Action(nameof(DeleteUser), new { id = user.User_Id }),
+                    },
                 }
             );
         }
 
+        // -------------------------------------------------------------
+        //  GET ALL USERS WITH PAGINATION
+        // -------------------------------------------------------------
+
         /// <summary>
-        /// Lista todos os usuários com paginação.
+        /// Retorna todos os usuários com paginação.
         /// </summary>
+        /// <param name="page">Número da página.</param>
+        /// <param name="pageSize">Quantidade de itens por página.</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllUsers(
@@ -101,23 +143,11 @@ namespace Lyra.Controllers
                     u.Name,
                     u.Email,
                     u.Experience_Level,
-                    links = new[]
+                    _links = new
                     {
-                        new
-                        {
-                            rel = "self",
-                            href = Url.Action(nameof(GetUserById), new { id = u.User_Id }),
-                        },
-                        new
-                        {
-                            rel = "update",
-                            href = Url.Action(nameof(UpdateUser), new { id = u.User_Id }),
-                        },
-                        new
-                        {
-                            rel = "delete",
-                            href = Url.Action(nameof(DeleteUser), new { id = u.User_Id }),
-                        },
+                        self = Url.Action(nameof(GetUserById), new { id = u.User_Id }),
+                        update = Url.Action(nameof(UpdateUser), new { id = u.User_Id }),
+                        delete = Url.Action(nameof(DeleteUser), new { id = u.User_Id }),
                     },
                 })
                 .ToListAsync();
@@ -129,13 +159,27 @@ namespace Lyra.Controllers
                     pageSize,
                     totalUsers,
                     totalPages,
-                    users,
+                    data = users,
+                    _links = new
+                    {
+                        self = Url.Action(nameof(GetAllUsers), new { page, pageSize }),
+                        next = page < totalPages
+                            ? Url.Action(nameof(GetAllUsers), new { page = page + 1, pageSize })
+                            : null,
+                        prev = page > 1
+                            ? Url.Action(nameof(GetAllUsers), new { page = page - 1, pageSize })
+                            : null,
+                    },
                 }
             );
         }
 
+        // -------------------------------------------------------------
+        //  GET USER BY ID
+        // -------------------------------------------------------------
+
         /// <summary>
-        /// Retorna usuário pelo ID.
+        /// Retorna um usuário pelo identificador único.
         /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -146,11 +190,29 @@ namespace Lyra.Controllers
             if (user == null)
                 return NotFound(new { message = "Usuário não encontrado." });
 
-            return Ok(user);
+            return Ok(
+                new
+                {
+                    user.User_Id,
+                    user.Name,
+                    user.Email,
+                    user.Experience_Level,
+                    _links = new
+                    {
+                        self = Url.Action(nameof(GetUserById), new { id }),
+                        update = Url.Action(nameof(UpdateUser), new { id }),
+                        delete = Url.Action(nameof(DeleteUser), new { id }),
+                    },
+                }
+            );
         }
 
+        // -------------------------------------------------------------
+        //  PUT - UPDATE USER
+        // -------------------------------------------------------------
+
         /// <summary>
-        /// Atualiza usuário existente.
+        /// Atualiza dados de um usuário existente.
         /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -161,17 +223,12 @@ namespace Lyra.Controllers
             if (user == null)
                 return NotFound(new { message = "Usuário não encontrado." });
 
-            // Atualiza apenas os campos enviados
             if (!string.IsNullOrWhiteSpace(dto.Name))
                 user.Name = dto.Name;
-
             if (!string.IsNullOrWhiteSpace(dto.Email))
                 user.Email = dto.Email;
-
-            // Senha só atualiza se vier preenchida
             if (!string.IsNullOrWhiteSpace(dto.Password))
                 user.Password = dto.Password;
-
             if (!string.IsNullOrWhiteSpace(dto.Experience_Level))
                 user.Experience_Level = dto.Experience_Level;
 
@@ -181,8 +238,12 @@ namespace Lyra.Controllers
             return NoContent();
         }
 
+        // -------------------------------------------------------------
+        //  DELETE USER
+        // -------------------------------------------------------------
+
         /// <summary>
-        /// Deleta usuário e suas trilhas.
+        /// Remove um usuário e suas trilhas associadas.
         /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -196,9 +257,10 @@ namespace Lyra.Controllers
             var trilhas = _context.Career_Paths.Where(t => t.UserId == id);
             _context.Career_Paths.RemoveRange(trilhas);
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
             _logger.LogInformation("Usuário deletado: {UserId}", id);
+
             return NoContent();
         }
     }

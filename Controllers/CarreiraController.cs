@@ -20,10 +20,14 @@ namespace Lyra.Controllers
             _logger = logger;
         }
 
+        // ====================================================================
+        //  GET – LISTAR TRILHAS POR USUÁRIO
+        // ====================================================================
+
+        /// <summary>
+        /// Retorna todas as trilhas concluídas por um usuário com paginação.
+        /// </summary>
         [HttpGet("{userId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetTrilhasDoUsuario(
             int userId,
             [FromQuery] int page = 1,
@@ -51,25 +55,23 @@ namespace Lyra.Controllers
                 .Take(pageSize)
                 .Select(t => new
                 {
+                    t.Id,
                     t.Trilha,
                     t.Descricao,
                     t.DataConclusao,
-                    links = new[]
+                    _links = new
                     {
-                        new
-                        {
-                            rel = "self",
-                            href = Url.Action(
-                                nameof(GetTrilhasDoUsuario),
-                                new
-                                {
-                                    userId,
-                                    page,
-                                    pageSize,
-                                }
-                            ),
-                        },
-                        new { rel = "concluir", href = Url.Action(nameof(ConcluirTrilha)) },
+                        self = Url.Action(
+                            nameof(GetTrilhasDoUsuario),
+                            new
+                            {
+                                userId,
+                                page,
+                                pageSize,
+                            }
+                        ),
+                        update = Url.Action(nameof(UpdateTrilha), new { id = t.Id }),
+                        delete = Url.Action(nameof(DeleteTrilha), new { id = t.Id }),
                     },
                 })
                 .ToListAsync();
@@ -81,14 +83,53 @@ namespace Lyra.Controllers
                     pageSize,
                     totalTrilhas,
                     totalPages,
-                    trilhas,
+                    data = trilhas,
+                    _links = new
+                    {
+                        self = Url.Action(
+                            nameof(GetTrilhasDoUsuario),
+                            new
+                            {
+                                userId,
+                                page,
+                                pageSize,
+                            }
+                        ),
+                        next = page < totalPages
+                            ? Url.Action(
+                                nameof(GetTrilhasDoUsuario),
+                                new
+                                {
+                                    userId,
+                                    page = page + 1,
+                                    pageSize,
+                                }
+                            )
+                            : null,
+                        prev = page > 1
+                            ? Url.Action(
+                                nameof(GetTrilhasDoUsuario),
+                                new
+                                {
+                                    userId,
+                                    page = page - 1,
+                                    pageSize,
+                                }
+                            )
+                            : null,
+                    },
                 }
             );
         }
 
+        // ====================================================================
+        //  POST – CRIAR TRILHA
+        // ====================================================================
+
+        /// <summary>
+        /// Registra a conclusão de uma nova trilha.
+        /// </summary>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ConcluirTrilha([FromBody] CarreiraDto dto)
         {
             if (dto.UserId <= 0 || string.IsNullOrWhiteSpace(dto.Trilha))
@@ -105,16 +146,106 @@ namespace Lyra.Controllers
             _context.Career_Paths.Add(registro);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Trilha concluída pelo usuário {UserId}", dto.UserId);
-
             return CreatedAtAction(
                 nameof(GetTrilhasDoUsuario),
                 new { userId = dto.UserId },
                 new
                 {
-                    message = "Trilha salva com sucesso!",
-                    trilha = registro.Trilha,
-                    descricao = registro.Descricao,
+                    message = "Trilha registrada com sucesso!",
+                    trilha = new
+                    {
+                        registro.Id,
+                        registro.Trilha,
+                        registro.Descricao,
+                        registro.DataConclusao,
+                        _links = new
+                        {
+                            self = Url.Action(
+                                nameof(GetTrilhasDoUsuario),
+                                new { userId = dto.UserId }
+                            ),
+                            update = Url.Action(nameof(UpdateTrilha), new { id = registro.Id }),
+                            delete = Url.Action(nameof(DeleteTrilha), new { id = registro.Id }),
+                        },
+                    },
+                }
+            );
+        }
+
+        // ====================================================================
+        //  PUT – ATUALIZAR TRILHA
+        // ====================================================================
+
+        /// <summary>
+        /// Atualiza uma trilha concluída.
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTrilha(int id, [FromBody] CarreiraDto dto)
+        {
+            var trilha = await _context.Career_Paths.FindAsync(id);
+
+            if (trilha == null)
+                return NotFound(new { message = "Trilha não encontrada." });
+
+            trilha.Trilha = dto.Trilha ?? trilha.Trilha;
+            trilha.Descricao = dto.Descricao ?? trilha.Descricao;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(
+                new
+                {
+                    message = "Trilha atualizada com sucesso!",
+                    trilha = new
+                    {
+                        trilha.Id,
+                        trilha.Trilha,
+                        trilha.Descricao,
+                        trilha.DataConclusao,
+                        _links = new
+                        {
+                            self = Url.Action(nameof(UpdateTrilha), new { id }),
+                            delete = Url.Action(nameof(DeleteTrilha), new { id }),
+                            list = Url.Action(
+                                nameof(GetTrilhasDoUsuario),
+                                new { userId = trilha.UserId }
+                            ),
+                        },
+                    },
+                }
+            );
+        }
+
+        // ====================================================================
+        //  DELETE – APAGAR TRILHA
+        // ====================================================================
+
+        /// <summary>
+        /// Remove uma trilha concluída.
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTrilha(int id)
+        {
+            var trilha = await _context.Career_Paths.FindAsync(id);
+
+            if (trilha == null)
+                return NotFound(new { message = "Trilha não encontrada." });
+
+            _context.Remove(trilha);
+            await _context.SaveChangesAsync();
+
+            return Ok(
+                new
+                {
+                    message = "Trilha removida com sucesso!",
+                    _links = new
+                    {
+                        list = Url.Action(
+                            nameof(GetTrilhasDoUsuario),
+                            new { userId = trilha.UserId }
+                        ),
+                        create = Url.Action(nameof(ConcluirTrilha)),
+                    },
                 }
             );
         }
