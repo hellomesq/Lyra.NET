@@ -161,10 +161,19 @@ namespace Lyra.Controllers
             if (user == null)
                 return NotFound(new { message = "Usuário não encontrado." });
 
-            user.Name = dto.Name;
-            user.Email = dto.Email;
-            user.Password = dto.Password;
-            user.Experience_Level = dto.Experience_Level;
+            // Atualiza apenas os campos enviados
+            if (!string.IsNullOrWhiteSpace(dto.Name))
+                user.Name = dto.Name;
+
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+                user.Email = dto.Email;
+
+            // Senha só atualiza se vier preenchida
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+                user.Password = dto.Password;
+
+            if (!string.IsNullOrWhiteSpace(dto.Experience_Level))
+                user.Experience_Level = dto.Experience_Level;
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Usuário atualizado: {UserId}", id);
