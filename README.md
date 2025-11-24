@@ -113,5 +113,9 @@ Cada recurso retornado inclui links que indicam operações relacionadas, como:
 A listagem de trilhas também fornece links de paginação: next e prev.
   
 ## Endpoints 
+<img width="1789" height="332" alt="image" src="https://github.com/user-attachments/assets/6637cc92-4c02-44f9-bddb-bf125ffb4668" />
+<img width="1811" height="870" alt="image" src="https://github.com/user-attachments/assets/47a74be1-aed3-43c4-bfc9-0936e225680f" />
+<img width="1794" height="480" alt="image" src="https://github.com/user-attachments/assets/d036d3f5-fd9f-447a-b7a5-8b1d59d14d00" />
+
 
 
