@@ -21,25 +21,10 @@ A Lyra busca oferecer uma experiência de aprendizado personalizada, permitindo 
 Essa arquitetura permite manter escalabilidade, clareza e rastreabilidade, facilitando futuras integrações e melhorias.
 
 ## Como rodar os testes
-A solução possui dois tipos de testes:
-- Unitários: testam classes e métodos isoladamente, sem depender de banco de dados ou servidor HTTP.
-- Integração: simulam chamadas HTTP para a API usando WebApplicationFactory, testando fluxo completo.
-
 1. Dentro do terminal, execute na raiz do projeto para rodar todos os testes
    ```bash
    dotnet test
    ```
-2. Para rodar apenas os testes unitários
-   ```bash
-   
-   ```
-3. Para rodar apenas os testes de integração
-   ```bash
-   
-   ```
-Exemplos de testes implementados:
-
-
 ## Como rodar a API
 
 1. Clone o repositório:
